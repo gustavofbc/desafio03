@@ -34,10 +34,42 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const addProduct = async (productId: number) => {
     try {
-      // TODO
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(productId));
+      const updatedCard = [...cart];
+      //verifico se tem o produto no array (carrinho)
+      const productExists = updatedCard.find(product => product.id === productId);
+
+      // busco os dados no estoque
+      const stock = await api.get(`/stock/${productId}`);
+
+      const stockAmount = stock.data.amount;
+      const currentAmount = productExists ? productExists.amount : 0;
+      const amount = currentAmount + 1;
+
+      // se a quantidade solicitada é maior do que se tem em estoque
+      if (amount > stockAmount) {
+        toast.error('Quantidade solicitada fora de estoque');
+        return;
+      }
+      // se existe o produto no array (carrinho), adiciono +1 a ele
+      if (productExists) {
+        productExists.amount = amount;
+        // se não, eu adiciono o produto no array (carrinho)
+      } else {
+        const product = await api.get(`/products/${productId}`);
+        // como não tem o "amount" na API, eu preciso inicializá-la com 1
+        const newProduct = {
+          ...product.data,
+          amount: 1
+        }
+        updatedCard.push(newProduct);
+      }
+      // adiciono os dados no estado
+      setCart(updatedCard);
+      // salvo os dados na LocalStorage API
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCard));
     } catch {
       // TODO
+      toast.error('Erro na adição do produto');
     }
   };
 

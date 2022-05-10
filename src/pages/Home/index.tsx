@@ -24,20 +24,24 @@ interface CartItemsAmount {
 const Home = (): JSX.Element => {
   const [products, setProducts] = useState<ProductFormatted[]>([]);
   const { addProduct, cart } = useCart();
-  console.log(cart)
-  // const cartItemsAmount = cart.reduce((sumAmount, product) => {
-  //   // if (product.id) {
-  //   // console.log(product);' 
-
-  //   return {
-
-  //   }
-
-  // }, {} as CartItemsAmount)
+  const cartItemsAmount = cart.reduce((sumAmount, product) => {
+    const newSumAmount = { ...sumAmount };
+    //criando uma chave e associando seu valor ao amount do elemento atual;
+    newSumAmount[product.id] = product.amount;
+    return newSumAmount;
+  }, {} as CartItemsAmount)
 
   useEffect(() => {
     async function loadProducts() {
-      api.get('products').then((response) => setProducts(response.data));
+      // "<Product[]>" passo pelo axios via generic a tipagem
+      const response = await api.get<Product[]>('products');
+
+      const data = response.data.map(product => ({
+        ...product,
+        priceFormatted: formatPrice(product.price)
+      }))
+
+      setProducts(data);
     }
 
     loadProducts();
@@ -54,7 +58,7 @@ const Home = (): JSX.Element => {
         <li key={product.id}>
           <img src={product.image} alt={product.title} />
           <strong>{product.title}</strong>
-          <span>{formatPrice(product.price)}</span>
+          <span>{product.priceFormatted}</span>
           <button
             type="button"
             data-testid="add-product-button"
@@ -62,7 +66,7 @@ const Home = (): JSX.Element => {
           >
             <div data-testid="cart-product-quantity">
               <MdAddShoppingCart size={16} color="#FFF" />
-              {/* {cartItemsAmount[product.id] || 0} */}
+              {cartItemsAmount[product.id] || 0}
             </div>
 
             <span>ADICIONAR AO CARRINHO</span>
