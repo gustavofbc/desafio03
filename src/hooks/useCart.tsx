@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
 import { Product, Stock } from '../types';
@@ -31,6 +31,25 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
     return [];
   });
+
+  // \/ LÓGICA PARA NÃO USAR O "localStorage.setItem" AO FIM DAS FUNÇÕES (escalabilidade) \/
+  // usando o useRef para monitorar um estado
+  const prevCardRef = useRef<Product[]>();
+  // pego o valor atual do carrinho
+  useEffect(() => {
+    prevCardRef.current = cart;
+  })
+  // na primeira vez vai selecionar o da direita para que não seja undefined
+  //após isso  escolherá o da esquerda
+  const cartPreviousValue = prevCardRef.current ?? cart;
+  // faço a verificação de que se houve ou não alteração no carrinho e
+  //caso ocorra ele atualizará o valor da referẽncia para o novo valor do carrinho
+  //fazendo isso através do localStorage.setItem
+  useEffect(() => {
+    if (cartPreviousValue !== cart) {
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
+    }
+  }, [cart, cartPreviousValue]);
 
   const addProduct = async (productId: number) => {
     try {
@@ -65,8 +84,8 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       }
       // adiciono os dados no estado
       setCart(updatedCart);
-      // salvo os dados na LocalStorage API
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
+      // salvo os dados na LocalStorage API (no useRef agora)
+
     } catch {
       toast.error('Erro na adição do produto');
     }
@@ -81,7 +100,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       if (productIndex >= 0) {
         updatedCart.splice(productIndex, 1);
         setCart(updatedCart);
-        localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
+        // salvo os dados na LocalStorage API (no useRef agora)
       } else {
         //forçar um erro para que ele vá direto para o catch
         throw Error();
@@ -117,7 +136,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       if (productExists) {
         productExists.amount = amount;
         setCart(updatedCart);
-        localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
+        // salvo os dados na LocalStorage API (no useRef agora)
       } else {
         throw Error();
       }
