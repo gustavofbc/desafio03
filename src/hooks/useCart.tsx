@@ -34,9 +34,9 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const addProduct = async (productId: number) => {
     try {
-      const updatedCard = [...cart];
+      const updatedCart = [...cart];
       //verifico se tem o produto no array (carrinho)
-      const productExists = updatedCard.find(product => product.id === productId);
+      const productExists = updatedCart.find(product => product.id === productId);
 
       // busco os dados no estoque
       const stock = await api.get(`/stock/${productId}`);
@@ -61,23 +61,34 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
           ...product.data,
           amount: 1
         }
-        updatedCard.push(newProduct);
+        updatedCart.push(newProduct);
       }
       // adiciono os dados no estado
-      setCart(updatedCard);
+      setCart(updatedCart);
       // salvo os dados na LocalStorage API
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCard));
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
     } catch {
-      // TODO
       toast.error('Erro na adição do produto');
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
+      const updatedCart = [...cart];
+      //retorna -1 se não encontrar
+      const productIndex = updatedCart.findIndex(product => product.id === productId);
+
+      if (productIndex >= 0) {
+        updatedCart.splice(productIndex, 1);
+        setCart(updatedCart);
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
+      } else {
+        //forçar um erro para que ele vá direto para o catch
+        throw Error();
+      }
+
     } catch {
-      // TODO
+      toast.error('Erro na remoção do produto');
     }
   };
 
@@ -86,9 +97,32 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      // TODO
+      // se a quantidade do produto que tento atualizar for menor ou iguala zero eu paro a função
+      if (amount <= 0) {
+        return;
+      }
+
+      const stock = await api.get(`/stock/${productId}`);
+
+      const strockAmount = stock.data.amount;
+
+      if (amount > strockAmount) {
+        toast.error('Quantidade solicitada fora de estoque');
+        return;
+      }
+
+      const updatedCart = [...cart];
+      const productExists = updatedCart.find(product => product.id === productId);
+
+      if (productExists) {
+        productExists.amount = amount;
+        setCart(updatedCart);
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
+      } else {
+        throw Error();
+      }
     } catch {
-      // TODO
+      toast.error('Erro na alteração de quantidade do produto');
     }
   };
 
