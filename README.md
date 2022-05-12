@@ -24,9 +24,9 @@
 
 <hr/>
 
-<p>Lista de atividades/afazeres desenvolvida por meio do desafio 1 da trilha de ReactJS - Curso Ignite promovido pela :rocket: Rocketseat.</p>
+<p>Hook de carrinho de compras de um site desenvolvido por meio do desafio 3 da trilha de ReactJS - Curso Ignite promovido pela :rocket: Rocketseat.</p>
 
-<img alt="Interface" src="https://github.com/gustavofbc/desafio01/blob/main/public/interface.png"/>
+<img alt="Interface" src="https://github.com/gustavofbc/desafio03/blob/master/src/assets/images/interface.png"/>
 
 
 ### :wrench: Instalação
@@ -57,6 +57,7 @@ yarn test
 ### :mortar_board: Aprendizados
 
 -> Aplicação de conceitos de Hooks na prática: useState, useEffect, useRef (bônus);
+
 -> Imutabilidade;
 
 ### Autor
